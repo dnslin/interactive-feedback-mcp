@@ -1,7 +1,7 @@
-# Interactive Feedback MCP
-# Developed by Fábio Ferreira (https://x.com/fabiomlferreira)
-# Inspired by/related to dotcursorrules.com (https://dotcursorrules.com/)
-# Enhanced by Pau Oliva (https://x.com/pof) with ideas from https://github.com/ttommyth/interactive-mcp
+# 交互式反馈 MCP
+# 由 Fábio Ferreira 开发 (https://x.com/fabiomlferreira)
+# 灵感来源/相关项目: dotcursorrules.com (https://dotcursorrules.com/)
+# 由 Pau Oliva (https://x.com/pof) 增强，借鉴了 https://github.com/ttommyth/interactive-mcp 的想法
 import os
 import sys
 import json
@@ -13,22 +13,22 @@ from typing import Annotated, Dict
 from fastmcp import FastMCP
 from pydantic import Field
 
-# The log_level is necessary for Cline to work: https://github.com/jlowin/fastmcp/issues/81
+# 日志级别(log_level)对于 Cline 的正常工作是必要的: https://github.com/jlowin/fastmcp/issues/81
 mcp = FastMCP("Interactive Feedback MCP", log_level="ERROR")
 
 def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None) -> dict[str, str]:
-    # Create a temporary file for the feedback result
+    # 为反馈结果创建一个临时文件
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
         output_file = tmp.name
 
     try:
-        # Get the path to feedback_ui.py relative to this script
+        # 获取相对于此脚本的 feedback_ui.py 路径
         script_dir = os.path.dirname(os.path.abspath(__file__))
         feedback_ui_path = os.path.join(script_dir, "feedback_ui.py")
 
-        # Run feedback_ui.py as a separate process
-        # NOTE: There appears to be a bug in uv, so we need
-        # to pass a bunch of special flags to make this work
+        # 作为独立进程运行 feedback_ui.py
+        # 注意: uv 中似乎存在一个 bug，因此我们需要
+        # 传递一些特殊的标志才能使其工作
         args = [
             sys.executable,
             "-u",
@@ -49,7 +49,7 @@ def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None)
         if result.returncode != 0:
             raise Exception(f"Failed to launch feedback UI: {result.returncode}")
 
-        # Read the result from the temporary file
+        # 从临时文件中读取结果
         with open(output_file, 'r') as f:
             result = json.load(f)
         os.unlink(output_file)
@@ -61,10 +61,10 @@ def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None)
 
 @mcp.tool()
 def interactive_feedback(
-    message: str = Field(description="The specific question for the user"),
-    predefined_options: list = Field(default=None, description="Predefined options for the user to choose from (optional)"),
+    message: str = Field(description="向用户提出的具体问题"),
+    predefined_options: list = Field(default=None, description="供用户选择的预定义选项 (可选)"),
 ) -> Dict[str, str]:
-    """Request interactive feedback from the user"""
+    """请求用户进行交互式反馈"""
     predefined_options_list = predefined_options if isinstance(predefined_options, list) else None
     return launch_feedback_ui(message, predefined_options_list)
 
